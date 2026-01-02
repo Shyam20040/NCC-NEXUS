@@ -6,6 +6,7 @@ import LoginPage from "./components/LoginPage";
 import AnoLogin from "./components/AnoLogin";
 import CadetDashboard from "./components/CadetDashboard";
 import Feed from "./components/Feed";
+import Chatbot from "./components/Chatbot";
 const App = () => {
   return (
     <BrowserRouter>
@@ -18,6 +19,7 @@ const App = () => {
         <Route path="/ano-login" element={<AnoLogin />} />
         <Route path="/dashboard" element={<CadetDashboard />} />
          <Route path="/feed" element={<Feed />} />
+         <Route path="/chatbot" element={<Chatbot />} />
       </Routes>
     </BrowserRouter>
   );
