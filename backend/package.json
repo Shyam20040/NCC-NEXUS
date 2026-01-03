@@ -2,10 +2,9 @@
   "name": "ncc-nexus-backend",
   "version": "1.0.0",
   "description": "NCC Nexus Backend",
-  "type": "module",
-  "main": "server.js",
+  "main": "src/app.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node src/app.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

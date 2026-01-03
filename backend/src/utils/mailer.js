@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export const sendMail = async ({ to, subject, html }) => {
+const sendMail = async ({ to, subject, html }) => {
   await transporter.sendMail({
     from: process.env.MAIL_FROM,
     to,
@@ -18,3 +18,5 @@ export const sendMail = async ({ to, subject, html }) => {
     html,
   });
 };
+
+module.exports = { sendMail };

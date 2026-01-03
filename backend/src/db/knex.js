@@ -1,12 +1,12 @@
-import dotenv from "dotenv";
-dotenv.config(); 
+const dotenv = require("dotenv");
+dotenv.config();
 
-import knex from "knex";
-import config from "../../knexfile.js";
+const knex = require("knex");
+const config = require("../../knexfile"); // not used
 
 const db = knex({
   client: "pg",
   connection: process.env.POSTGRES_URL,
 });
 
-export default db;
+module.exports = db;
