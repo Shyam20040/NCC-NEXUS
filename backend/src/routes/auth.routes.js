@@ -1,15 +1,16 @@
-import express from "express";
-import { login } from "../controllers/auth.controller.js";
-import { resetPasswordLoggedIn } from "../controllers/auth.controller.js";
-import { authenticate } from "../middlewares/auth.middleware.js";
+const express = require("express");
+const {
+  anoLogin,
+  cadetLogin,
+  resetPasswordLoggedIn,
+} = require("../controllers/auth.controller");
+
+const { authenticate } = require("../middlewares/auth.middleware");
 
 const router = express.Router();
 
-router.post("/login", login);
-
-router.get("/me", authenticate, (req, res) => {
-  res.json({ user: req.user });
-});
+router.post("/ano/login", anoLogin);
+router.post("/cadet/login", cadetLogin);
 router.post("/reset-password", authenticate, resetPasswordLoggedIn);
 
-export default router;
+module.exports = router;

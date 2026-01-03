@@ -1,12 +1,15 @@
-import db from "../db/knex.js";
-import bcrypt from "bcrypt";
-import { generateToken } from "../utils/jwt.js";
+const db = require("../db/knex");
+const bcrypt = require("bcrypt");
+const { generateToken } = require("../utils/jwt");
 
-export const login = async (req, res) => {
+const anoLogin = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await db("users").where({ email }).first();
+    const user = await db("users")
+      .where({ email, role: "ANO" })
+      .first();
+
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -18,27 +21,82 @@ export const login = async (req, res) => {
 
     const token = generateToken({
       user_id: user.user_id,
-      role: user.role,
+      role: "ANO",
     });
 
-    res.json({
-      message: "Login successful",
+    return res.json({
+      message: "ANO login successful",
       token,
       user: {
         user_id: user.user_id,
-        role: user.role,
+        role: "ANO",
         email: user.email,
       },
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("ANO Login Error:", err);
+    return res.status(500).json({ error: err.message });
   }
 };
-export const resetPasswordLoggedIn = async (req, res) => {
+
+const cadetLogin = async (req, res) => {
+  const { regimental_no, password } = req.body;
+
+  try {
+    const cadet = await db("cadet_profiles as cp")
+      .join("users as u", "cp.user_id", "u.user_id")
+      .where("cp.regimental_no", regimental_no)
+      .select(
+        "u.user_id",
+        "u.password_hash",
+        "u.role",
+        "cp.full_name"
+      )
+      .first();
+
+    if (!cadet) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const isMatch = await bcrypt.compare(password, cadet.password_hash);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const designation = await db("cadet_roles as cr")
+      .join("cadet_designations as cd", "cr.designation_id", "cd.id")
+      .where("cr.regimental_no", regimental_no)
+      .whereNull("cr.end_date")
+      .select("cd.name")
+      .first();
+
+    const token = generateToken({
+      user_id: cadet.user_id,
+      role: cadet.role,
+      designation: designation?.name || "Cadet",
+      regimental_no,
+    });
+
+    return res.json({
+      message: "Login successful",
+      token,
+      user: {
+        regimental_no,
+        role: cadet.role,
+        designation: designation?.name || "Cadet",
+        name: cadet.full_name,
+      },
+    });
+  } catch (err) {
+    console.error("Cadet Login Error:", err);
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+const resetPasswordLoggedIn = async (req, res) => {
   const userId = req.user.user_id;
   const { currentPassword, newPassword, confirmNewPassword } = req.body;
 
-  // 1️⃣ Validate input
   if (!currentPassword || !newPassword || !confirmNewPassword) {
     return res.status(400).json({ message: "All fields are required" });
   }
@@ -48,39 +106,42 @@ export const resetPasswordLoggedIn = async (req, res) => {
   }
 
   if (newPassword.length < 6) {
-    return res
-      .status(400)
-      .json({ message: "Password must be at least 6 characters" });
+    return res.status(400).json({ message: "Password too short" });
   }
 
   try {
-    // 2️⃣ Get user
-    const user = await db("users").where({ user_id: userId }).first();
+    const user = await db("users")
+      .where({ user_id: userId })
+      .first();
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // 3️⃣ Verify current password
     const isMatch = await bcrypt.compare(
       currentPassword,
       user.password_hash
     );
 
     if (!isMatch) {
-      return res.status(401).json({ message: "Current password is incorrect" });
+      return res.status(401).json({ message: "Current password incorrect" });
     }
 
-    // 4️⃣ Hash new password
     const newHash = await bcrypt.hash(newPassword, 10);
 
-    // 5️⃣ Update password
     await db("users")
       .where({ user_id: userId })
       .update({ password_hash: newHash });
 
-    res.json({ message: "Password updated successfully" });
+    return res.json({ message: "Password updated successfully" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Reset Password Error:", err);
+    return res.status(500).json({ error: err.message });
   }
+};
+
+module.exports = {
+  anoLogin,
+  cadetLogin,
+  resetPasswordLoggedIn,
 };

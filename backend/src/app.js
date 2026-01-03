@@ -1,10 +1,10 @@
-import dotenv from "dotenv";
-dotenv.config(); 
+const dotenv = require("dotenv");
+dotenv.config();
 
-import express from "express";
-import db from "./db/knex.js";
-import authRoutes from "./routes/auth.routes.js";
-import anoRoutes from "./routes/ano.routes.js";
+const express = require("express");
+const db = require("./db/knex");
+const authRoutes = require("./routes/auth.routes");
+const anoRoutes = require("./routes/ano.routes");
 
 const app = express();
 
