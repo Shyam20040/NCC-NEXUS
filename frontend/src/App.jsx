@@ -40,6 +40,9 @@ import Community from "./pages/Community";
 import CommunityFeed from "./components/community/CommunityFeed";
 import AnoDonationOverview from "./components/Donations/AnoDonationOverview";
 
+// 7. Command / Intelligence Module
+import CadetTwin from "./components/Command/CadetTwin";
+
 const App = () => {
   return (
     <BrowserRouter>
@@ -72,6 +75,10 @@ const App = () => {
         <Route path="/meetings/:meetingId/room" element={<MeetingRoomPage />} />
         <Route path="/meetings/:meetingId/report" element={<PostMeetingReport />} />
         <Route path="/community" element={<Community />} />
+
+        {/* COMMAND / INTELLIGENCE ROUTES */}
+        <Route path="/twin" element={<CadetTwin />} />
+        <Route path="/twin/:regimentalNo" element={<CadetTwin />} />
 
         <Route
           path="/quiz/attempt/:attemptId"
