@@ -1,0 +1,68 @@
+// Responsibility: HTTP handlers for the Intelligence Layer (attendance readiness).
+// Layer: Intelligence (Layer 1) controller — thin; validation + access control + delegation.
+// Depends on: intelligence.service, intelligence.repository (for college-scope check).
+// Must never be depended on by: any existing/legacy module.
+
+const service = require("./intelligence.service");
+const legacyRepo = require("./intelligence.repository");
+
+// Multi-tenant + ownership guard. Cadets/Alumni may only access their own record;
+// staff (ANO) may access cadets within their own college.
+async function assertAccess(req, regimentalNo) {
+  const role = String(req.user.role || "").toUpperCase();
+
+  if (role === "CADET" || role === "ALUMNI") {
+    if (req.user.regimental_no !== regimentalNo) {
+      const err = new Error("Access denied");
+      err.status = 403;
+      throw err;
+    }
+    return;
+  }
+
+  const collegeId = await legacyRepo.getCadetCollegeId(regimentalNo);
+  if (collegeId == null || Number(collegeId) !== Number(req.user.college_id)) {
+    const err = new Error("Access denied");
+    err.status = 403;
+    throw err;
+  }
+}
+
+// GET /api/intel/cadet/:regimentalNo — latest attendance readiness snapshot.
+async function getCadetReadiness(req, res, next) {
+  try {
+    const regimentalNo = String(req.params.regimentalNo || "").trim();
+    if (!regimentalNo) {
+      return res.status(400).json({ message: "regimental_no is required" });
+    }
+    await assertAccess(req, regimentalNo);
+
+    const snapshot = await service.getCadetReadiness(regimentalNo);
+    if (!snapshot) {
+      return res
+        .status(404)
+        .json({ message: "No readiness snapshot yet. Run POST /api/intel/recompute first." });
+    }
+    return res.json(snapshot);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+// POST /api/intel/recompute { regimental_no } — recompute + persist one cadet's snapshot.
+async function recompute(req, res, next) {
+  try {
+    const regimentalNo = String(req.body?.regimental_no || "").trim();
+    if (!regimentalNo) {
+      return res.status(400).json({ message: "regimental_no is required" });
+    }
+    await assertAccess(req, regimentalNo);
+
+    const snapshot = await service.recomputeCadet(regimentalNo, { referenceDate: new Date() });
+    return res.status(201).json(snapshot);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+module.exports = { getCadetReadiness, recompute };

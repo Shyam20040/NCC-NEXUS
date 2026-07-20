@@ -26,6 +26,7 @@ const meetingRoutes = require("./modules/meetings/meeting.routes");
 const communityRoutes = require("./modules/community/community.routes");
 const { startCommunityPollNotifier } = require("./modules/community/community.poll-notifier");
 const voiceRoutes = require("./routes/voice.routes");
+const intelligenceRoutes = require("./modules/intelligence/intelligence.routes");
 
 const app = express();
 const server = http.createServer(app);
@@ -107,6 +108,7 @@ app.use("/api/meetings", meetingRoutes);
 app.use("/api/donations", donationRoutes);
 app.use("/api/community", communityRoutes);
 app.use("/api/voice", voiceRoutes);
+app.use("/api/intel", intelligenceRoutes);
 // 9. Global Error Handler
 // ------------------------------------------
 app.use((err, req, res, next) => {
@@ -139,3 +141,4 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+

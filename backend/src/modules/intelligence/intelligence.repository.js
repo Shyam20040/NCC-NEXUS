@@ -49,4 +49,17 @@ async function getAttendanceObservations(regimentalNo) {
   }));
 }
 
-module.exports = { getAttendanceObservations };
+/**
+ * Return a cadet's college_id, used for multi-tenant scope checks. SELECT only.
+ * @param {string} regimentalNo
+ * @returns {Promise<number|null>}
+ */
+async function getCadetCollegeId(regimentalNo) {
+  const row = await db("cadet_profiles")
+    .where({ regimental_no: regimentalNo })
+    .select("college_id")
+    .first();
+  return row ? row.college_id : null;
+}
+
+module.exports = { getAttendanceObservations, getCadetCollegeId };
