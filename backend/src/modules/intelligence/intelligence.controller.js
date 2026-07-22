@@ -65,4 +65,32 @@ async function recompute(req, res, next) {
   }
 }
 
-module.exports = { getCadetReadiness, recompute };
+// GET /api/intel/readiness — cohort readiness for the caller's college (staff only).
+async function getCollegeReadiness(req, res, next) {
+  try {
+    const collegeId = req.user.college_id;
+    if (collegeId == null) {
+      return res.status(400).json({ message: "No college context for this user" });
+    }
+    const rows = await service.getCollegeReadiness(collegeId);
+    return res.json(rows);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+// POST /api/intel/recompute-college — recompute every cadet in the caller's college (staff only).
+async function recomputeCollege(req, res, next) {
+  try {
+    const collegeId = req.user.college_id;
+    if (collegeId == null) {
+      return res.status(400).json({ message: "No college context for this user" });
+    }
+    const result = await service.recomputeCollege(collegeId, { referenceDate: new Date() });
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+module.exports = { getCadetReadiness, recompute, getCollegeReadiness, recomputeCollege };

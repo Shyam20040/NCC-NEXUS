@@ -14,7 +14,22 @@ const controller = require("./intelligence.controller");
 
 const router = express.Router();
 
+// Staff = ANO, or a CADET whose rank is Senior Under Officer (SUO). Cohort-wide
+// readiness must never be exposed to a regular cadet.
+const staffOnly = (req, res, next) => {
+  const role = String(req.user?.role || "").toUpperCase();
+  const isSuo =
+    role === "CADET" &&
+    String(req.user?.rank || "").toLowerCase() === "senior under officer";
+  if (role === "ANO" || isSuo) return next();
+  return res.status(403).json({ message: "Access denied" });
+};
+
 router.use(authenticate);
+
+// ── Cohort (staff only) ──
+router.get("/readiness", staffOnly, controller.getCollegeReadiness);
+router.post("/recompute-college", staffOnly, controller.recomputeCollege);
 
 router.get(
   "/cadet/:regimentalNo",

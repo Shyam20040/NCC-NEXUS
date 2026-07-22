@@ -17,8 +17,15 @@ const { buildSnapshot } = require("./snapshot.builder");
  */
 async function recomputeCadet(regimentalNo, options = {}) {
   const identity = await legacyRepo.getCadetIdentity(regimentalNo);
-  const userId = identity ? identity.userId : null;
-  const rankId = identity ? identity.rankId : null;
+  // Fail fast: without a cadet_profiles row the snapshot's FK insert would fail
+  // anyway, and a snapshot keyed to a non-existent cadet could never be retrieved.
+  if (!identity) {
+    const err = new Error(`Cadet identity not found for ${regimentalNo}`);
+    err.status = 404;
+    throw err;
+  }
+  const userId = identity.userId;
+  const rankId = identity.rankId;
 
   const [
     attendanceObservations,
@@ -38,7 +45,7 @@ async function recomputeCadet(regimentalNo, options = {}) {
 
   const snapshot = buildSnapshot({
     regimentalNo,
-    collegeId: identity ? identity.collegeId : null,
+    collegeId: identity.collegeId,
     referenceDate: options.referenceDate,
     attendanceObservations,
     quizAttempts,
@@ -47,7 +54,7 @@ async function recomputeCadet(regimentalNo, options = {}) {
     communityEvents,
     leadership: {
       ...leadershipInputs,
-      joiningYear: identity ? identity.joiningYear : null,
+      joiningYear: identity.joiningYear,
     },
   });
 
@@ -62,4 +69,61 @@ async function getCadetReadiness(regimentalNo) {
   return snapshotRepo.getLatestByCadet(regimentalNo);
 }
 
-module.exports = { recomputeCadet, getCadetReadiness };
+/**
+ * Pure merge of a college roster with its latest snapshots. Cadets without a
+ * snapshot are still returned (has_snapshot=false) so the cohort view is complete.
+ * @param {Array<{regimentalNo:string, fullName:string, rankName:(string|null)}>} cadets
+ * @param {Array<object>} snapshots latest snapshot rows
+ */
+function mergeCohort(cadets = [], snapshots = []) {
+  const byReg = new Map(snapshots.map((s) => [s.regimental_no, s]));
+  return cadets.map((c) => {
+    const snap = byReg.get(c.regimentalNo) || null;
+    return {
+      regimental_no: c.regimentalNo,
+      full_name: c.fullName,
+      rank_name: c.rankName,
+      overall_score: snap ? snap.overall_score : null,
+      overall_confidence: snap ? snap.overall_confidence : null,
+      computed_at: snap ? snap.computed_at : null,
+      pillars: snap ? snap.pillars : null,
+      has_snapshot: Boolean(snap),
+    };
+  });
+}
+
+/**
+ * Cohort readiness for a whole college: every cadet with their latest snapshot (or null).
+ * @param {number} collegeId
+ */
+async function getCollegeReadiness(collegeId) {
+  const [cadets, snapshots] = await Promise.all([
+    legacyRepo.getCollegeCadets(collegeId),
+    snapshotRepo.getLatestSnapshotsByCollege(collegeId),
+  ]);
+  return mergeCohort(cadets, snapshots);
+}
+
+/**
+ * Recompute + persist snapshots for every cadet in a college (sequential to stay
+ * gentle on the DB). Returns how many were processed.
+ * @param {number} collegeId
+ * @param {{referenceDate?:(Date|string)}} [options]
+ */
+async function recomputeCollege(collegeId, options = {}) {
+  const cadets = await legacyRepo.getCollegeCadets(collegeId);
+  let recomputed = 0;
+  for (const c of cadets) {
+    await recomputeCadet(c.regimentalNo, options);
+    recomputed += 1;
+  }
+  return { recomputed, total: cadets.length };
+}
+
+module.exports = {
+  recomputeCadet,
+  getCadetReadiness,
+  mergeCohort,
+  getCollegeReadiness,
+  recomputeCollege,
+};

@@ -51,4 +51,19 @@ async function getLatestByCadet(regimentalNo, profile = "general") {
   return normalize(row);
 }
 
-module.exports = { insertSnapshot, getLatestByCadet };
+/**
+ * Return the LATEST snapshot per cadet for a whole college (one row per cadet).
+ * Uses Postgres DISTINCT ON (regimental_no) with computed_at DESC.
+ * @param {number} collegeId
+ * @param {string} [profile="general"]
+ */
+async function getLatestSnapshotsByCollege(collegeId, profile = "general") {
+  const rows = await db(TABLE)
+    .distinctOn("regimental_no")
+    .where({ college_id: collegeId, profile })
+    .orderBy("regimental_no")
+    .orderBy("computed_at", "desc");
+  return rows.map(normalize);
+}
+
+module.exports = { insertSnapshot, getLatestByCadet, getLatestSnapshotsByCollege };

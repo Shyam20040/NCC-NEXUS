@@ -75,6 +75,27 @@ async function getAttendanceObservations(regimentalNo) {
   }));
 }
 
+/**
+ * Roster of cadets in a college with display fields (for the cohort/Command Center).
+ * @returns {Promise<Array<{regimentalNo:string, fullName:string, rankName:(string|null)}>>}
+ */
+async function getCollegeCadets(collegeId) {
+  const rows = await db("cadet_profiles as cp")
+    .leftJoin("cadet_ranks as cr", "cr.id", "cp.rank_id")
+    .where("cp.college_id", collegeId)
+    .orderBy("cp.full_name", "asc")
+    .select(
+      "cp.regimental_no as regimentalNo",
+      "cp.full_name as fullName",
+      "cr.rank_name as rankName"
+    );
+  return rows.map((r) => ({
+    regimentalNo: r.regimentalNo,
+    fullName: r.fullName,
+    rankName: r.rankName || null,
+  }));
+}
+
 /** Quiz attempts for a cadet (by user_id). Includes all statuses; scorers filter. */
 async function getQuizAttempts(userId) {
   if (userId == null) return [];
@@ -190,6 +211,7 @@ async function getLeadershipInputs(regimentalNo, userId, rankId) {
 module.exports = {
   getCadetIdentity,
   getCadetCollegeId,
+  getCollegeCadets,
   getAttendanceObservations,
   getQuizAttempts,
   getFines,
