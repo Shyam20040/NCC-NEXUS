@@ -1,5 +1,6 @@
-// Responsibility: Orchestrate the attendance readiness pipeline —
-//   read observations (legacy, SELECT-only) -> build snapshot (pure) -> persist (new table).
+// Responsibility: Orchestrate the full readiness pipeline —
+//   read all pillar signals (legacy, SELECT-only) -> build composite snapshot (pure)
+//   -> persist (new table).
 // Layer: Intelligence (Layer 1) service.
 // Depends on: intelligence.repository (legacy read), snapshot.builder (pure),
 //   snapshot.repository (new-table read/write).
@@ -10,21 +11,44 @@ const snapshotRepo = require("./snapshot.repository");
 const { buildSnapshot } = require("./snapshot.builder");
 
 /**
- * Recompute and persist the latest attendance snapshot for one cadet.
+ * Recompute and persist the latest readiness snapshot for one cadet.
  * @param {string} regimentalNo
  * @param {{referenceDate?:(Date|string)}} [options]
  */
 async function recomputeCadet(regimentalNo, options = {}) {
-  const [observations, collegeId] = await Promise.all([
+  const identity = await legacyRepo.getCadetIdentity(regimentalNo);
+  const userId = identity ? identity.userId : null;
+  const rankId = identity ? identity.rankId : null;
+
+  const [
+    attendanceObservations,
+    quizAttempts,
+    fines,
+    meetings,
+    communityEvents,
+    leadershipInputs,
+  ] = await Promise.all([
     legacyRepo.getAttendanceObservations(regimentalNo),
-    legacyRepo.getCadetCollegeId(regimentalNo),
+    legacyRepo.getQuizAttempts(userId),
+    legacyRepo.getFines(regimentalNo),
+    legacyRepo.getMeetingAttendance(userId),
+    legacyRepo.getCommunityEventCount(userId),
+    legacyRepo.getLeadershipInputs(regimentalNo, userId, rankId),
   ]);
 
   const snapshot = buildSnapshot({
     regimentalNo,
-    collegeId,
-    observations,
+    collegeId: identity ? identity.collegeId : null,
     referenceDate: options.referenceDate,
+    attendanceObservations,
+    quizAttempts,
+    fines,
+    meetings,
+    communityEvents,
+    leadership: {
+      ...leadershipInputs,
+      joiningYear: identity ? identity.joiningYear : null,
+    },
   });
 
   return snapshotRepo.insertSnapshot(snapshot);
