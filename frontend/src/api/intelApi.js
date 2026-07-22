@@ -27,6 +27,10 @@ export const intelApi = {
     client.get(`/cadet/${encodeURIComponent(regimentalNo)}`),
   // Recompute + persist a fresh snapshot for a cadet.
   recompute: (regimentalNo) => client.post("/recompute", { regimental_no: regimentalNo }),
+  // Cohort readiness for the caller's college (staff only).
+  getCollegeReadiness: () => client.get("/readiness"),
+  // Recompute every cadet in the caller's college (staff only).
+  recomputeCollege: () => client.post("/recompute-college"),
 };
 
 export default intelApi;

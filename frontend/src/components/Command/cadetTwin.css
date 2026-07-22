@@ -6,22 +6,22 @@
  * Must never be depended on by: other components (scoped under .twin-module).
  */
 
-/* Token resolution order: cadet dashboard (--d-*) -> SUO dashboard (--s-*)
-   -> hard fallback. Keeps the screen native to whichever shell hosts it. */
+/* Token resolution order: cadet dashboard (--d-*) -> SUO dashboard (--s-*) ->
+   ANO dashboard (--a-*) -> hard fallback. Native to whichever shell hosts it. */
 .twin-module {
-  --tw-bg: var(--d-bg, var(--s-bg, #f0f2f8));
-  --tw-surface: var(--d-surface, var(--s-surface, #ffffff));
-  --tw-text: var(--d-text, var(--s-text, #1a1d2e));
-  --tw-text-2: var(--d-text-secondary, var(--s-text-secondary, #3d4260));
-  --tw-muted: var(--d-text-muted, var(--s-text-muted, #8b90a8));
-  --tw-primary: var(--d-primary, var(--s-primary, #5c6bc0));
-  --tw-primary-light: var(--d-primary-light, var(--s-primary-light, #7986cb));
-  --tw-navy: var(--d-navy, var(--s-navy, #1a237e));
-  --tw-red: var(--d-red, var(--s-red, #e53935));
-  --tw-border: var(--d-border, var(--s-border, rgba(0, 0, 0, 0.06)));
-  --tw-font: var(--d-font, var(--s-font, "Poppins", sans-serif));
-  --tw-font-display: var(--d-font-display, var(--s-font-display, "Marcellus", serif));
-  --tw-font-tech: var(--d-font-tech, var(--s-font-tech, "Manrope", sans-serif));
+  --tw-bg: var(--d-bg, var(--s-bg, var(--a-bg, #f0f2f8)));
+  --tw-surface: var(--d-surface, var(--s-surface, var(--a-surface, #ffffff)));
+  --tw-text: var(--d-text, var(--s-text, var(--a-text, #1a1d2e)));
+  --tw-text-2: var(--d-text-secondary, var(--s-text-secondary, var(--a-text-secondary, #3d4260)));
+  --tw-muted: var(--d-text-muted, var(--s-text-muted, var(--a-text-muted, #8b90a8)));
+  --tw-primary: var(--d-primary, var(--s-primary, var(--a-primary, #5c6bc0)));
+  --tw-primary-light: var(--d-primary-light, var(--s-primary-light, var(--a-primary-light, #7986cb)));
+  --tw-navy: var(--d-navy, var(--s-navy, var(--a-navy, #1a237e)));
+  --tw-red: var(--d-red, var(--s-red, var(--a-red, #e53935)));
+  --tw-border: var(--d-border, var(--s-border, var(--a-border, rgba(0, 0, 0, 0.06))));
+  --tw-font: var(--d-font, var(--s-font, var(--a-font, "Poppins", sans-serif)));
+  --tw-font-display: var(--d-font-display, var(--s-font-display, var(--a-font-display, "Marcellus", serif)));
+  --tw-font-tech: var(--d-font-tech, var(--s-font-tech, var(--a-font-tech, "Manrope", sans-serif)));
 
   font-family: var(--tw-font);
   color: var(--tw-text);

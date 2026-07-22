@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { FaUserPlus, FaUsers, FaComments, FaClipboardList, FaTachometerAlt, FaVideo, FaBullhorn, FaHandHoldingHeart } from "react-icons/fa";
+import { FaUserPlus, FaUsers, FaComments, FaClipboardList, FaTachometerAlt, FaVideo, FaBullhorn, FaHandHoldingHeart, FaChartLine } from "react-icons/fa";
 import nccLogo from "../assets/ncc-logo.png";
 
 const Sidebar = ({ isOpen = true, onClose }) => {
@@ -42,6 +42,14 @@ const Sidebar = ({ isOpen = true, onClose }) => {
             onClick={() => (typeof onClose === "function" ? onClose() : undefined)}
           >
             <FaUsers /> <span>Manage Cadets</span>
+          </NavLink>
+
+          <NavLink
+            to="command"
+            className="menu-item"
+            onClick={() => (typeof onClose === "function" ? onClose() : undefined)}
+          >
+            <FaChartLine /> <span>Command Center</span>
           </NavLink>
 
           <NavLink
