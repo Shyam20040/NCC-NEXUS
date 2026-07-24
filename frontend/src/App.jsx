@@ -44,6 +44,7 @@ import AnoDonationOverview from "./components/Donations/AnoDonationOverview";
 import CadetTwin from "./components/Command/CadetTwin";
 import CommandCenter from "./components/Command/CommandCenter";
 import CommandCadetView from "./components/Command/CommandCadetView";
+import RiskWatchlist from "./components/Command/RiskWatchlist";
 
 const App = () => {
   return (
@@ -97,6 +98,7 @@ const App = () => {
           <Route path="add-cadet" element={<AddCadet />} />
           <Route path="manage-cadets" element={<ManageCadets />} />
           <Route path="command" element={<CommandCenter />} />
+          <Route path="command/risk" element={<RiskWatchlist />} />
           <Route path="command/cadet/:regimentalNo" element={<CommandCadetView />} />
           <Route path="ano-attendance" element={<AnoAttendance />} />
           <Route path="chat" element={<AnoChat />} />

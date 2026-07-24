@@ -76,6 +76,7 @@ const voiceRoutes = require("./routes/voice.routes");
 console.log("26. voice routes loaded");
 
 const intelligenceRoutes = require("./modules/intelligence/intelligence.routes");
+const decisionRoutes = require("./modules/decision/decision.routes");
 console.log("27. intelligence routes loaded");
 
 const app = express();
@@ -161,6 +162,7 @@ app.use("/api/donations", donationRoutes);
 app.use("/api/community", communityRoutes);
 app.use("/api/voice", voiceRoutes);
 app.use("/api/intel", intelligenceRoutes);
+app.use("/api/decision", decisionRoutes);
 
 console.log("35. Routes registered");
 
