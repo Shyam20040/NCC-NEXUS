@@ -9,6 +9,9 @@
 const intelligenceService = require("../intelligence/intelligence.service");
 const decisionRepo = require("./decision.repository");
 const { assessRisk } = require("./recipes/atRisk");
+const { selectForCamp } = require("./recipes/campSelection");
+
+const SELECTION_PROFILES = ["rdc", "promotion", "certificate", "general"];
 
 const SEVERITY_ORDER = { high: 0, medium: 1, low: 2, none: 3 };
 
@@ -123,6 +126,55 @@ async function scanCollege(collegeId, { io } = {}) {
   };
 }
 
+/**
+ * Pure: validate + coerce raw camp-selection request params (e.g. from a query
+ * string, where everything arrives as a string). Throws a 400-tagged Error on
+ * bad input so the controller can surface a clear message.
+ * @returns {{slots:number, reserves:number, profile:string, minReadiness:(number|null)}}
+ */
+function normalizeSelectionParams(raw = {}) {
+  const bad = (message) => {
+    const e = new Error(message);
+    e.status = 400;
+    return e;
+  };
+
+  const slots = Number(raw.slots);
+  if (!Number.isInteger(slots) || slots < 1) {
+    throw bad("`slots` must be an integer >= 1.");
+  }
+
+  let reserves = 0;
+  if (raw.reserves != null && raw.reserves !== "") {
+    reserves = Number(raw.reserves);
+    if (!Number.isInteger(reserves) || reserves < 0) {
+      throw bad("`reserves` must be an integer >= 0.");
+    }
+  }
+
+  const profile = raw.profile ? String(raw.profile).trim().toLowerCase() : "rdc";
+  if (!SELECTION_PROFILES.includes(profile)) {
+    throw bad(`\`profile\` must be one of: ${SELECTION_PROFILES.join(", ")}.`);
+  }
+
+  let minReadiness = null;
+  if (raw.minReadiness != null && raw.minReadiness !== "") {
+    minReadiness = Number(raw.minReadiness);
+    if (!Number.isFinite(minReadiness) || minReadiness < 0 || minReadiness > 100) {
+      throw bad("`minReadiness` must be a number between 0 and 100.");
+    }
+  }
+
+  return { slots, reserves, profile, minReadiness };
+}
+
+/** Live camp/RDC selection over a college's latest snapshots (nothing persisted). */
+async function getCampSelection(collegeId, rawParams = {}) {
+  const opts = normalizeSelectionParams(rawParams);
+  const cohort = await intelligenceService.getCollegeReadiness(collegeId);
+  return selectForCamp(cohort, opts);
+}
+
 /** Persisted active flags (open + acknowledged) for a college. */
 async function listFlags(collegeId) {
   return decisionRepo.listActiveByCollege(collegeId);
@@ -144,6 +196,8 @@ module.exports = {
   reconcilePlan,
   getCollegeRisk,
   scanCollege,
+  normalizeSelectionParams,
+  getCampSelection,
   listFlags,
   acknowledgeFlag,
 };

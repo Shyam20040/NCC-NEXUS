@@ -39,6 +39,19 @@ async function scan(req, res, next) {
   }
 }
 
+// GET /api/decision/camp-selection — live ranked selection for the caller's college.
+// Query: slots (>=1, required), reserves (>=0), profile, minReadiness (0..100).
+async function campSelection(req, res, next) {
+  try {
+    const collegeId = requireCollege(req, res);
+    if (collegeId == null) return undefined;
+    const result = await service.getCampSelection(collegeId, req.query);
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+}
+
 // GET /api/decision/flags — persisted active flags (open + acknowledged).
 async function listFlags(req, res, next) {
   try {
@@ -67,4 +80,4 @@ async function acknowledge(req, res, next) {
   }
 }
 
-module.exports = { getAtRisk, scan, listFlags, acknowledge };
+module.exports = { getAtRisk, scan, campSelection, listFlags, acknowledge };

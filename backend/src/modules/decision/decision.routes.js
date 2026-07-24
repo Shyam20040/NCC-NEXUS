@@ -26,6 +26,7 @@ router.use(staffOnly);
 
 router.get("/at-risk", controller.getAtRisk);
 router.post("/at-risk/scan", controller.scan);
+router.get("/camp-selection", controller.campSelection);
 router.get("/flags", controller.listFlags);
 router.patch("/flags/:id/acknowledge", controller.acknowledge);
 
