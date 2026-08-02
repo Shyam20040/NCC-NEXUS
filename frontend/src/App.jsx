@@ -45,6 +45,7 @@ import CadetTwin from "./components/Command/CadetTwin";
 import CommandCenter from "./components/Command/CommandCenter";
 import CommandCadetView from "./components/Command/CommandCadetView";
 import RiskWatchlist from "./components/Command/RiskWatchlist";
+import CampSelectionBoard from "./components/Command/CampSelectionBoard";
 
 const App = () => {
   return (
@@ -99,6 +100,7 @@ const App = () => {
           <Route path="manage-cadets" element={<ManageCadets />} />
           <Route path="command" element={<CommandCenter />} />
           <Route path="command/risk" element={<RiskWatchlist />} />
+          <Route path="command/camp-selection" element={<CampSelectionBoard />} />
           <Route path="command/cadet/:regimentalNo" element={<CommandCadetView />} />
           <Route path="ano-attendance" element={<AnoAttendance />} />
           <Route path="chat" element={<AnoChat />} />

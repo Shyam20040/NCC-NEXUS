@@ -25,6 +25,9 @@ client.interceptors.request.use((config) => {
 export const decisionApi = {
   // Live at-risk list computed from the latest snapshots (staff only).
   getAtRisk: () => client.get("/at-risk"),
+  // Live ranked camp/RDC selection for the caller's college (staff only).
+  // params: { slots, reserves, profile, minReadiness }.
+  getCampSelection: (params) => client.get("/camp-selection", { params }),
   // Recompute + reconcile persisted flags for the caller's college (staff only).
   scan: () => client.post("/at-risk/scan"),
   // Persisted active flags (open + acknowledged) for the caller's college.
